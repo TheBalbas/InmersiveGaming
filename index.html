@@ -82,11 +82,30 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
+    .saved-bg-list {
+      margin-top: 10px;
+      background: rgba(255,255,255,0.1);
+      padding: 5px;
+      border-radius: 4px;
+    }
+    .saved-bg-list div {
+      margin-bottom: 5px;
+    }
+    .saved-bg-list button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      margin-right: 4px;
+      padding: 4px 6px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body id="body">
   <div class="overlay"></div>
-  <div id="frame" class="frame" style="width: 640px; height: 480px;"></div>
+  <div id="frame" class="frame"></div>
   <div class="controls" id="controls">
     <label for="resolution">Resolución:</label>
     <select id="resolution">
@@ -95,8 +114,13 @@
       <option value="1024x768">1024x768</option>
     </select>
 
-    <label for="customBg">Fondo personalizado:</label>
+    <label for="customBg">Fondo por URL:</label>
     <input type="url" id="customBg" placeholder="URL de imagen" size="30">
+
+    <label for="uploadBg">o Subir imagen:</label>
+    <input type="file" id="uploadBg" accept="image/*">
+
+    <div class="saved-bg-list" id="savedBgList"></div>
 
     <button id="toggleControls" class="toggle-btn">Ocultar Controles</button>
   </div>
@@ -110,25 +134,92 @@
     const toggleBtn = document.getElementById('toggleControls');
     const showControlsBtn = document.getElementById('showControlsBtn');
     const customBg = document.getElementById('customBg');
+    const uploadBg = document.getElementById('uploadBg');
+    const savedBgList = document.getElementById('savedBgList');
+    const resolutionSelect = document.getElementById('resolution');
 
-    // Aplicar fondo guardado si existe
+    const applyBackground = (url) => {
+      body.style.backgroundImage = `url('${url}')`;
+      localStorage.setItem('customBackground', url);
+    };
+
+    const updateSavedBgList = () => {
+      const list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
+      savedBgList.innerHTML = '<strong>Guardados:</strong><br>';
+      list.forEach((url, index) => {
+        const container = document.createElement('div');
+        const btn = document.createElement('button');
+        btn.textContent = url.length > 30 ? url.slice(0, 30) + '…' : url;
+        btn.title = url;
+        btn.onclick = () => {
+          applyBackground(url);
+          customBg.value = url;
+        };
+        const del = document.createElement('button');
+        del.textContent = '🗑';
+        del.onclick = () => {
+          list.splice(index, 1);
+          localStorage.setItem('savedBackgrounds', JSON.stringify(list));
+          updateSavedBgList();
+        };
+        container.appendChild(btn);
+        container.appendChild(del);
+        savedBgList.appendChild(container);
+      });
+    };
+
     const savedBg = localStorage.getItem('customBackground');
     if (savedBg) {
-      body.style.backgroundImage = `url('${savedBg}')`;
+      applyBackground(savedBg);
       customBg.value = savedBg;
     }
 
-    document.getElementById('resolution').addEventListener('change', (e) => {
+    const savedResolution = localStorage.getItem('customResolution');
+    if (savedResolution) {
+      resolutionSelect.value = savedResolution;
+      const [w, h] = savedResolution.split('x');
+      frame.style.width = w + 'px';
+      frame.style.height = h + 'px';
+    } else {
+      frame.style.width = '640px';
+      frame.style.height = '480px';
+    }
+
+    resolutionSelect.addEventListener('change', (e) => {
       const [w, h] = e.target.value.split('x');
       frame.style.width = w + 'px';
       frame.style.height = h + 'px';
+      localStorage.setItem('customResolution', e.target.value);
     });
 
     customBg.addEventListener('change', () => {
       const url = customBg.value.trim();
       if (url) {
-        body.style.backgroundImage = `url('${url}')`;
-        localStorage.setItem('customBackground', url);
+        applyBackground(url);
+        let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
+        if (!list.includes(url)) {
+          list.push(url);
+          localStorage.setItem('savedBackgrounds', JSON.stringify(list));
+        }
+        updateSavedBgList();
+      }
+    });
+
+    uploadBg.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const url = event.target.result;
+          applyBackground(url);
+          let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
+          if (!list.includes(url)) {
+            list.push(url);
+            localStorage.setItem('savedBackgrounds', JSON.stringify(list));
+          }
+          updateSavedBgList();
+        };
+        reader.readAsDataURL(file);
       }
     });
 
@@ -141,6 +232,9 @@
       controls.style.display = 'block';
       showControlsBtn.style.display = 'none';
     });
+
+    updateSavedBgList();
   </script>
 </body>
 </html>
+
