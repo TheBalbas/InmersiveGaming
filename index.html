@@ -59,6 +59,16 @@
       color: white;
     }
 
+    .toggle-btn {
+      margin-left: 10px;
+      background: #333;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
     .fog {
       position: absolute;
       width: 100%;
@@ -94,6 +104,8 @@
       <option value="800x600">800x600</option>
       <option value="1024x768">1024x768</option>
     </select>
+
+    <button id="toggleControls" class="toggle-btn">Ocultar Controles</button>
   </div>
   <div class="info">Ubicá tu ventana de juego aquí. Fondo personalizado activo.</div>
 
@@ -106,6 +118,8 @@
 
     const frame = document.getElementById('frame');
     const body = document.getElementById('body');
+    const controls = document.querySelector('.controls');
+    const toggleBtn = document.getElementById('toggleControls');
 
     document.getElementById('game').addEventListener('change', (e) => {
       body.style.backgroundImage = `url('${backgrounds[e.target.value]}')`;
@@ -115,6 +129,10 @@
       const [w, h] = e.target.value.split('x');
       frame.style.width = w + 'px';
       frame.style.height = h + 'px';
+    });
+
+    toggleBtn.addEventListener('click', () => {
+      controls.style.display = controls.style.display === 'none' ? 'block' : 'none';
     });
   </script>
 </body>
