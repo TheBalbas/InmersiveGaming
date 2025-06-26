@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Immersive Game Frame</title>
+  <title>Fondo de Juego Inmersivo</title>
   <style>
     html, body {
       margin: 0;
@@ -53,10 +53,13 @@
       left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.5);
-      padding: 10px;
+      padding: 20px;
       border-radius: 8px;
       z-index: 4;
       color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .show-controls {
@@ -74,7 +77,6 @@
     }
 
     .toggle-btn {
-      margin-left: 10px;
       background: #333;
       color: white;
       border: none;
@@ -84,14 +86,15 @@
     }
 
     .saved-bg-list {
-      margin-top: 10px;
       background: rgba(255,255,255,0.1);
-      padding: 5px;
+      padding: 10px;
       border-radius: 4px;
     }
+
     .saved-bg-list div {
       margin-bottom: 5px;
     }
+
     .saved-bg-list button {
       background: rgba(255,255,255,0.2);
       color: white;
@@ -100,6 +103,10 @@
       padding: 4px 6px;
       cursor: pointer;
       border-radius: 3px;
+    }
+
+    label, input, select {
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -120,6 +127,9 @@
     <label for="uploadBg">o Subir imagen:</label>
     <input type="file" id="uploadBg" accept="image/*">
 
+    <label for="bgName">Nombre del fondo:</label>
+    <input type="text" id="bgName" placeholder="Ej: Silent Hill Niebla" size="30">
+
     <div class="saved-bg-list" id="savedBgList"></div>
 
     <button id="toggleControls" class="toggle-btn">Ocultar Controles</button>
@@ -137,6 +147,7 @@
     const uploadBg = document.getElementById('uploadBg');
     const savedBgList = document.getElementById('savedBgList');
     const resolutionSelect = document.getElementById('resolution');
+    const bgNameInput = document.getElementById('bgName');
 
     const applyBackground = (url) => {
       body.style.backgroundImage = `url('${url}')`;
@@ -145,15 +156,15 @@
 
     const updateSavedBgList = () => {
       const list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
-      savedBgList.innerHTML = '<strong>Guardados:</strong><br>';
-      list.forEach((url, index) => {
+      savedBgList.innerHTML = '<strong>Fondos guardados:</strong><br>';
+      list.forEach((item, index) => {
         const container = document.createElement('div');
         const btn = document.createElement('button');
-        btn.textContent = url.length > 30 ? url.slice(0, 30) + '…' : url;
-        btn.title = url;
+        btn.textContent = item.name || 'Fondo ' + (index + 1);
+        btn.title = item.url;
         btn.onclick = () => {
-          applyBackground(url);
-          customBg.value = url;
+          applyBackground(item.url);
+          customBg.value = item.url;
         };
         const del = document.createElement('button');
         del.textContent = '🗑';
@@ -192,16 +203,21 @@
       localStorage.setItem('customResolution', e.target.value);
     });
 
+    const saveBackground = (url) => {
+      const name = bgNameInput.value.trim();
+      let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
+      if (!list.find(item => item.url === url)) {
+        list.push({ url, name });
+        localStorage.setItem('savedBackgrounds', JSON.stringify(list));
+      }
+      updateSavedBgList();
+    };
+
     customBg.addEventListener('change', () => {
       const url = customBg.value.trim();
       if (url) {
         applyBackground(url);
-        let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
-        if (!list.includes(url)) {
-          list.push(url);
-          localStorage.setItem('savedBackgrounds', JSON.stringify(list));
-        }
-        updateSavedBgList();
+        saveBackground(url);
       }
     });
 
@@ -212,12 +228,7 @@
         reader.onload = (event) => {
           const url = event.target.result;
           applyBackground(url);
-          let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
-          if (!list.includes(url)) {
-            list.push(url);
-            localStorage.setItem('savedBackgrounds', JSON.stringify(list));
-          }
-          updateSavedBgList();
+          saveBackground(url);
         };
         reader.readAsDataURL(file);
       }
@@ -237,4 +248,5 @@
   </script>
 </body>
 </html>
+
 
