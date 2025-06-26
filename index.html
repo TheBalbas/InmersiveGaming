@@ -76,7 +76,7 @@
       display: none;
     }
 
-    .toggle-btn {
+    .toggle-btn, .apply-btn {
       background: #333;
       color: white;
       border: none;
@@ -130,6 +130,8 @@
     <label for="bgName">Nombre del fondo:</label>
     <input type="text" id="bgName" placeholder="Ej: Silent Hill Niebla" size="30">
 
+    <button id="applyBg" class="apply-btn">Aplicar y Guardar</button>
+
     <div class="saved-bg-list" id="savedBgList"></div>
 
     <button id="toggleControls" class="toggle-btn">Ocultar Controles</button>
@@ -148,6 +150,7 @@
     const savedBgList = document.getElementById('savedBgList');
     const resolutionSelect = document.getElementById('resolution');
     const bgNameInput = document.getElementById('bgName');
+    const applyBtn = document.getElementById('applyBg');
 
     const applyBackground = (url) => {
       body.style.backgroundImage = `url('${url}')`;
@@ -165,6 +168,7 @@
         btn.onclick = () => {
           applyBackground(item.url);
           customBg.value = item.url;
+          bgNameInput.value = item.name || '';
         };
         const del = document.createElement('button');
         del.textContent = '🗑';
@@ -178,6 +182,38 @@
         savedBgList.appendChild(container);
       });
     };
+
+    const saveBackground = (url) => {
+      const name = bgNameInput.value.trim();
+      let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
+      if (!list.find(item => item.url === url)) {
+        list.push({ url, name });
+        localStorage.setItem('savedBackgrounds', JSON.stringify(list));
+      }
+      updateSavedBgList();
+    };
+
+    applyBtn.addEventListener('click', () => {
+      const url = customBg.value.trim();
+      if (url) {
+        applyBackground(url);
+        saveBackground(url);
+      }
+    });
+
+    uploadBg.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const url = event.target.result;
+          customBg.value = url;
+          applyBackground(url);
+          saveBackground(url);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
     const savedBg = localStorage.getItem('customBackground');
     if (savedBg) {
@@ -203,37 +239,6 @@
       localStorage.setItem('customResolution', e.target.value);
     });
 
-    const saveBackground = (url) => {
-      const name = bgNameInput.value.trim();
-      let list = JSON.parse(localStorage.getItem('savedBackgrounds') || '[]');
-      if (!list.find(item => item.url === url)) {
-        list.push({ url, name });
-        localStorage.setItem('savedBackgrounds', JSON.stringify(list));
-      }
-      updateSavedBgList();
-    };
-
-    customBg.addEventListener('change', () => {
-      const url = customBg.value.trim();
-      if (url) {
-        applyBackground(url);
-        saveBackground(url);
-      }
-    });
-
-    uploadBg.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const url = event.target.result;
-          applyBackground(url);
-          saveBackground(url);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
     toggleBtn.addEventListener('click', () => {
       controls.style.display = 'none';
       showControlsBtn.style.display = 'block';
@@ -248,5 +253,6 @@
   </script>
 </body>
 </html>
+
 
 
