@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fondo de Juego Inmersivo</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
     html, body {
       margin: 0;
@@ -130,7 +131,7 @@
     <label for="bgName">Nombre del fondo:</label>
     <input type="text" id="bgName" placeholder="Ej: Silent Hill Niebla" size="30">
 
-    <button id="applyBg" class="apply-btn">Aplicar y Guardar</button>
+    <button id="applyBg" class="apply-btn" style="display: block;">Aplicar y Guardar</button>
 
     <div class="saved-bg-list" id="savedBgList"></div>
 
@@ -245,7 +246,7 @@
     });
 
     showControlsBtn.addEventListener('click', () => {
-      controls.style.display = 'block';
+      controls.style.display = 'flex';
       showControlsBtn.style.display = 'none';
     });
 
@@ -253,6 +254,5 @@
   </script>
 </body>
 </html>
-
 
 
